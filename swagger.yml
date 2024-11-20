@@ -1,0 +1,68 @@
+openapi: '3.0.0'
+info:
+  title: 'AWS SES Email Service with RabbitMQ and Redis'
+  description: 'API for sending emails using Amazon SES, RabbitMQ for queuing, and Redis for caching and job tracking.'
+  version: '1.0.0'
+
+servers:
+  - url: 'http://localhost:3000'
+    description: 'Local development server'
+  - url: 'https://your-production-server.com'
+    description: 'Production server'
+
+paths:
+  /send-email:
+    post:
+      summary: 'Send an email using AWS SES'
+      description: 'This endpoint allows you to send an email via Amazon SES, which is queued and processed by RabbitMQ.'
+
+  /email-status/{jobId}:
+    get:
+      summary: 'Get the status of a specific email task'
+      description: 'This endpoint retrieves the status of an email task using the job ID from the email queue.'
+
+  /queue-email:
+    post:
+      summary: 'Queue an email for processing'
+      description: 'This endpoint allows you to queue an email task, which will be processed by RabbitMQ and tracked in Redis.'
+  
+components:
+  schemas:
+    Email:
+      type: object
+      description: 'Schema for the email object.'
+      properties:
+        from:
+          type: string
+          description: 'Sender email address'
+        to:
+          type: array
+          items:
+            type: string
+          description: 'Recipient email addresses'
+        subject:
+          type: string
+          description: 'Email subject'
+        body:
+          type: string
+          description: 'Email body content'
+
+    EmailStatus:
+      type: object
+      description: 'Schema for email task status.'
+      properties:
+        jobId:
+          type: string
+          description: 'Job ID of the email task.'
+        status:
+          type: string
+          description: 'Status of the email task (e.g., "queued", "sent", "failed").'
+  
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+
+security:
+  - apiKeyAuth: []

@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  role      String   @default("User")
+  password  String
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  Emails     Emails[] @relation("Totalemails")
+  HouseOwned House[]  @relation("HouseOwner")
+
+  HouseBuild House[] @relation("Housebuilder")
+}
+
+model House {
+  id           String   @id @default(uuid())
+  address      String   @unique
+  wifipassword String?
+  owner        User     @relation("HouseOwner", fields: [ownerid], references: [id])
+  ownerid      String
+  buildby      User     @relation("Housebuilder", fields: [buildbyid], references: [id])
+  buildbyid    String
+  createdAt    DateTime @default(now())
+  updateAt     DateTime @updatedAt
+}
+
+// npx prisma migrate dev --name init --create-only
+//npx prisma migrate deploy 
+model Emails {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation("Totalemails", fields: [userId], references: [id])
+  title     String
+  Content   String
+  createtAt DateTime @default(now())
+}
+
+model logSchema {
+  logID      String   @id
+  logMessage String
+  logObject  Json
+  type       String
+  createdAt  DateTime @default(now())
+}
