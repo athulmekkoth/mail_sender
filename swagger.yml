@@ -1,68 +1,200 @@
 openapi: '3.0.0'
 info:
-  title: 'AWS SES Email Service with RabbitMQ and Redis'
-  description: 'API for sending emails using Amazon SES, RabbitMQ for queuing, and Redis for caching and job tracking.'
+  title: 'AWS SES Email Service with RabbitMQ, Redis, and User Authentication'
+  description: >
+    API for sending emails using Amazon SES, RabbitMQ for queuing, Redis for caching/job tracking, 
+    and user authentication with role-based permissions.
   version: '1.0.0'
 
 servers:
-  - url: 'http://localhost:3000'
+  - url: 'http://localhost:8080'
     description: 'Local development server'
-  - url: 'https://your-production-server.com'
-    description: 'Production server'
+
 
 paths:
-  /send-email:
+  /content/create:
     post:
-      summary: 'Send an email using AWS SES'
-      description: 'This endpoint allows you to send an email via Amazon SES, which is queued and processed by RabbitMQ.'
+      summary: 'Create Email Content'
+      description: >
+        Endpoint for creating email content with a title, content body, and unique ID. 
+        Requires authentication, role-based permission, and rate limiting.
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        description: 'Data required to create an email'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: 'Unique identifier for the email content'
+                title:
+                  type: string
+                  description: 'Title of the email content (minimum 5 characters)'
+                  minLength: 5
+                content:
+                  type: string
+                  description: 'Body content of the email'
+      responses:
+        '201':
+          description: 'Email content created successfully'
+        '400':
+          description: 'Validation error or bad request'
+        '401':
+          description: 'Unauthorized'
+        '403':
+          description: 'Permission denied'
+        '429':
+          description: 'Too many requests (rate-limited)'
 
-  /email-status/{jobId}:
+  /content/getall:
     get:
-      summary: 'Get the status of a specific email task'
-      description: 'This endpoint retrieves the status of an email task using the job ID from the email queue.'
+      summary: 'Retrieve All Email Content'
+      description: >
+        Fetches all created email content. Requires authentication.
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: 'List of email content'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Email'
+        '401':
+          description: 'Unauthorized'
 
-  /queue-email:
+  /content/delete:
+    get:
+      summary: 'Delete Email Content'
+      description: >
+        Deletes specific email content by ID. Requires authentication.
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: 'ID of the email content to delete'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Email content deleted successfully'
+        '400':
+          description: 'Validation error or bad request'
+        '401':
+          description: 'Unauthorized'
+
+  /user/register:
     post:
-      summary: 'Queue an email for processing'
-      description: 'This endpoint allows you to queue an email task, which will be processed by RabbitMQ and tracked in Redis.'
-  
+      summary: 'User Registration'
+      description: >
+        Endpoint for user registration. Accepts user details such as username, password, and email.
+      requestBody:
+        description: 'User registration data'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: 'Username for the user'
+                password:
+                  type: string
+                  description: 'Password for the user'
+                email:
+                  type: string
+                  format: email
+                  description: 'Email address of the user'
+      responses:
+        '201':
+          description: 'User registered successfully'
+        '400':
+          description: 'Validation error or bad request'
+
+  /user/login:
+    post:
+      summary: 'User Login'
+      description: >
+        Allows users to log in by providing valid credentials.
+      requestBody:
+        description: 'User login credentials'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: 'Username of the user'
+                password:
+                  type: string
+                  description: 'Password of the user'
+      responses:
+        '200':
+          description: 'User logged in successfully'
+        '401':
+          description: 'Invalid credentials or unauthorized'
+
+  /user/refresh:
+    post:
+      summary: 'Refresh User Token'
+      description: >
+        Refreshes the authentication token for a logged-in user.
+      responses:
+        '200':
+          description: 'Token refreshed successfully'
+        '401':
+          description: 'Unauthorized'
+
+  /user/logout:
+    post:
+      summary: 'User Logout'
+      description: >
+        Logs the user out and invalidates their session.
+      responses:
+        '200':
+          description: 'User logged out successfully'
+        '401':
+          description: 'Unauthorized'
+
+  /user/delete:
+    delete:
+      summary: 'Delete User Account'
+      description: >
+        Deletes a user account. Requires authentication.
+      responses:
+        '200':
+          description: 'User account deleted successfully'
+        '401':
+          description: 'Unauthorized'
+
 components:
   schemas:
     Email:
       type: object
-      description: 'Schema for the email object.'
       properties:
-        from:
+        id:
           type: string
-          description: 'Sender email address'
-        to:
-          type: array
-          items:
-            type: string
-          description: 'Recipient email addresses'
-        subject:
+          description: 'Unique identifier for the email content'
+        title:
           type: string
-          description: 'Email subject'
-        body:
+          description: 'Title of the email content'
+        content:
           type: string
-          description: 'Email body content'
+          description: 'Body content of the email'
 
-    EmailStatus:
-      type: object
-      description: 'Schema for email task status.'
-      properties:
-        jobId:
-          type: string
-          description: 'Job ID of the email task.'
-        status:
-          type: string
-          description: 'Status of the email task (e.g., "queued", "sent", "failed").'
-  
   securitySchemes:
     apiKeyAuth:
       type: apiKey
       in: header
       name: Authorization
-
-security:
-  - apiKeyAuth: []

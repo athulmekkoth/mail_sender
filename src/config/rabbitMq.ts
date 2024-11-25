@@ -1,21 +1,50 @@
 import { Channel, connect } from "amqplib"; 
 import { LOG_QUEUE, EMAIL_QUEUE } from "../Constants";
-import { v4 as uuidv4 } from 'uuid'; 
 
-let channel: Channel; 
+let channel: Channel | null = null;
 
-const connectRabbitMQ = async () => {
+// Retry mechanism for connecting to RabbitMQ
+const connectRabbitMQ = async (retries = 5, delay = 5000) => {
   try {
-    const connection = await connect(process.env.RABBITMQ_URI!); 
-    channel = await connection.createChannel(); 
+    // Check if the RabbitMQ URI is defined
+    const rabbitMQUri = process.env.RABBITMQ_URI;
+    if (!rabbitMQUri) {
+      throw new Error("RABBITMQ_URI environment variable is not defined");
+    }
+
+    const connection = await connect(rabbitMQUri);
+    channel = await connection.createChannel();
+
+    // Ensure queues exist
     await channel.assertQueue(LOG_QUEUE);
     await channel.assertQueue(EMAIL_QUEUE);
+
     console.log("Connected to RabbitMQ");
+
+    // Gracefully close the connection on app shutdown
+    process.on('SIGINT', async () => {
+      await channel?.close();
+      await connection.close();
+      console.log('RabbitMQ connection closed');
+    });
     
-    // Further logic...
   } catch (err) {
-    console.log("Error connecting to RabbitMQ:", err);
+    console.log(`Error connecting to RabbitMQ: ${err}`);
+    if (retries > 0) {
+      console.log(`Retrying in ${delay / 1000} seconds...`);
+      setTimeout(() => connectRabbitMQ(retries - 1, delay), delay);
+    } else {
+      throw new Error("Failed to connect to RabbitMQ after several attempts");
+    }
   }
 };
 
-export { connectRabbitMQ, channel };
+// Get the RabbitMQ channel
+const getChannel = (): Channel => {
+  if (!channel) {
+    throw new Error("RabbitMQ channel is not initialized");
+  }
+  return channel;
+};
+
+export { connectRabbitMQ, getChannel };

@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config()
-import { connectRabbitMQ,channel } from '../config/rabbitMq';
+import { connectRabbitMQ, getChannel } from '../config/rabbitMq';
 
 
 var queue = "Email-Queue"
@@ -14,7 +14,7 @@ interface Email{
 export const publishMessage = async (payload: Email) => {
   console.log(payload)
   try {
-  
+  const channel = getChannel()
     channel.sendToQueue(queue, Buffer.from(JSON.stringify(payload)))
 
   }

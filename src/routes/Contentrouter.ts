@@ -11,7 +11,7 @@ const contentRouter = Router();
 
 const validateMail = [
     body('title').isLength({ min: 5 }).withMessage('Title is required and minimmum 5 characters'),
-    body('id').notEmpty().trim()
+    
 ]
 
 contentRouter.post(

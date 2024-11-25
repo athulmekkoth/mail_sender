@@ -23,6 +23,7 @@ const UserRegister = async (req: Request, res: Response) => {
 
     }
     const hashedpass = await bcrypt.hash(password, 10);
+  
     const newuser = await prisma.user.create({
       data: {
         username: name,
@@ -43,7 +44,7 @@ const UserLogin = async (req: Request, res: Response) => {
 
   try {
     const user = await prisma.user.findUnique({ where: { email: req.body.email } });
-    console.log(user)
+   
 
     if (!user) {
 
@@ -58,13 +59,12 @@ const UserLogin = async (req: Request, res: Response) => {
 
     const Token = createToken(user.id,user.role);
 //  Verify the token before setting the cookie
-    res.cookie("token", Token, {
-      httpOnly: true
-    });
+   
 
     const logID = req.logId;
+    console.log(user)
     logMsg(logID as string, "userloginsuccess", { name:user.username, email:user.email,role:user.role });
-    return res.status(200).json({ message: "User logged in successfully", user: { id: user.id, name: user.username, role:user.role,token:Token} });
+    return res.status(200).json({ message: "User logged in successfully"});
 
   } catch (error) {
     const logID = req.logId;

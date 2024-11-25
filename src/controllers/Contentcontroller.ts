@@ -2,6 +2,8 @@ import express, { Express, NextFunction, Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
 import  {validationResult} from 'express-validator'
+import { logID } from '../middleware/LogggerId';
+import { logMsg } from '../lib/logProducer';
 const prisma = new PrismaClient();
 
 export const createMail = async (req: Request, res: Response, next: NextFunction) => {
@@ -22,21 +24,9 @@ const user =req.user?.id ?? '';
    
     }
   });
-   
-    // redis.hmset(result.id, {
-    //   userId: result.userId,
-    //   title: result.title,
-    //   Content: result.Content
-    // });
- 
+  const logID = req.logId;
+  logMsg(logID as string, "userCreatedSuccessfully", { name:result.title, content:result.Content });
     res.status(200).json({ message: "mail saved" });
-    // redis.hmget(result.id, 'userId', 'title', 'Content', (err, obj) => {
-    //   if (err) {
-    //     console.error(err);
-    //     return;
-    //   }
-    //   console.log(obj);
-    // })
   }
   catch (error: any) {
     console.log("errro happend:",error.message);

@@ -4,6 +4,6 @@ import { authMidleWare } from "../middleware/authMiddleWare";
 import { rateLimiter } from "../middleware/rateLimiter";
 const emailRouter=express.Router()
 
-emailRouter.post("/send",authMidleWare,rateLimiter,sendMail)
+emailRouter.post("/send",rateLimiter,sendMail)
 
 export default emailRouter

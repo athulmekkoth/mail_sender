@@ -1,10 +1,11 @@
 
-import { channel, connectRabbitMQ } from "../config/rabbitMq";
+import { connectRabbitMQ, getChannel } from "../config/rabbitMq";
 import { LOG_QUEUE } from "../Constants";
 import { createLog } from "../controllers/Logcontroller";
 
 export const startLogConsumer = async () => {
     try {
+        const channel = getChannel()
         await connectRabbitMQ();
 
   

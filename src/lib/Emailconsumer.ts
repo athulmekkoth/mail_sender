@@ -1,12 +1,12 @@
 import * as amqplib from 'amqplib';
-import { channel, connectRabbitMQ } from "../config/rabbitMq";
+import {  connectRabbitMQ, getChannel } from "../config/rabbitMq";
 import { EMAIL_QUEUE } from "../Constants";
 import sendMails from '../utils/EmailService';
 
 export const EmailConsumer = async () => {
   try {
     await connectRabbitMQ();
-
+const channel = getChannel()
     if (!channel) {
       throw new Error("Channel is not initialized");
     }
