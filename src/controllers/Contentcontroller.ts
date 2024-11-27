@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 
 export const createMail = async (req: Request, res: Response, next: NextFunction) => {
 const errros = validationResult(req)
-console.log(errros)
 const user =req.user?.id ?? '';
 
   try {

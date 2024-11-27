@@ -3,10 +3,10 @@ import { LOG_QUEUE, EMAIL_QUEUE } from "../Constants";
 
 let channel: Channel | null = null;
 
-// Retry mechanism for connecting to RabbitMQ
+
 const connectRabbitMQ = async (retries = 5, delay = 5000) => {
   try {
-    // Check if the RabbitMQ URI is defined
+
     const rabbitMQUri = process.env.RABBITMQ_URI;
     if (!rabbitMQUri) {
       throw new Error("RABBITMQ_URI environment variable is not defined");
@@ -15,13 +15,13 @@ const connectRabbitMQ = async (retries = 5, delay = 5000) => {
     const connection = await connect(rabbitMQUri);
     channel = await connection.createChannel();
 
-    // Ensure queues exist
+ 
     await channel.assertQueue(LOG_QUEUE);
     await channel.assertQueue(EMAIL_QUEUE);
 
     console.log("Connected to RabbitMQ");
 
-    // Gracefully close the connection on app shutdown
+  
     process.on('SIGINT', async () => {
       await channel?.close();
       await connection.close();
@@ -39,7 +39,7 @@ const connectRabbitMQ = async (retries = 5, delay = 5000) => {
   }
 };
 
-// Get the RabbitMQ channel
+
 const getChannel = (): Channel => {
   if (!channel) {
     throw new Error("RabbitMQ channel is not initialized");

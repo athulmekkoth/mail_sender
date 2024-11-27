@@ -8,7 +8,7 @@ type User = {
 export const authMidleWare = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const authHeader = req?.headers?.authorization ?? '';
-        console.log(authHeader)
+    
         if (!authHeader || authHeader === '' || !authHeader.startsWith('Bearer')) {
             return res.status(401).json({ message: "not authorized to acces this resource" })
 

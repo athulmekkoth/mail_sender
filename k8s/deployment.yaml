@@ -1,1 +1,22 @@
-api
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+      - name: node-app
+        image: athulmekkoth/node-app:latest
+        ports:
+        - containerPort: 8080 
+        envFrom:
+         - secretRef:
+               name:node-app-secrets
