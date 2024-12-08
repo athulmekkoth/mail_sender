@@ -76,10 +76,7 @@ jobs:
           location: ${{ secrets.GKE_ZONE }}
           export_default_credentials: true
 
-      # Step 4: Ensure the namespace exists
-      - name: Create Namespace if not exists
-        run: |
-          kubectl create namespace prod --dry-run=client -o yaml | kubectl apply -f -
+    
 
       # Step 5: Deploy manifests
       - name: Apply All Manifests
