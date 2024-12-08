@@ -3,7 +3,7 @@ services:
   app:
     build:
       context: .
-    image: node-app:latest # Explicitly set the image name
+    image: athulmekkoth/node-app:latest
     container_name: node-app
     ports:
       - "8080:8080"
