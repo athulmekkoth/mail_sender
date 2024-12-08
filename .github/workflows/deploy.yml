@@ -53,7 +53,6 @@ jobs:
       - name: Push Docker image to registry
         run: docker-compose -f docker-compose.yml push
 
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -66,28 +65,27 @@ jobs:
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
-     
-     
+      # Step 2: Set up Google Cloud SDK
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.PROJECT_ID }}
-       
-       
+
+      # Step 3: Install gke-gcloud-auth-plugin
       - name: Install gke-gcloud-auth-plugin
         run: |
           gcloud components install gke-gcloud-auth-plugin
-      
-      
+
+      # Step 4: Configure kubectl to use GKE cluster
       - name: Configure kubectl to use GKE cluster
         run: |
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.PROJECT_ID }}
 
-
+      # Step 5: Create prod namespace if it doesn't exist
       - name: Create prod namespace if it doesn't exist
         run: |
-        kubectl get namespace prod || kubectl create namespace prod
-    
+          kubectl get namespace prod || kubectl create namespace prod
 
+      # Step 6: Apply All Manifests
       - name: Apply All Manifests
         run: kubectl apply -f k8s/manifests/ -n prod --validate=false
