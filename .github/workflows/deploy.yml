@@ -38,24 +38,18 @@ jobs:
         run: |
           echo "${{ secrets.MY_ENV_FILE }}" > .env
 
-      # Step 5: Debug Docker credentials (optional for troubleshooting)
-      - name: Debug Docker login
-        run: |
-          echo "Username: ${{ secrets.DOCKERHUB_USERNAME }}"
-          echo "Password: ${{ secrets.DOCKERHUB_TOKEN }}"
-
-      # Step 6: Login to Docker Hub
+      # Step 5: Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Step 7: Build Docker images
+      # Step 6: Build Docker images
       - name: Build Docker images
         run: docker-compose -f docker-compose.yml build
 
-      # Step 8: Push Docker images to Docker Hub
+      # Step 7: Push Docker images to registry
       - name: Push Docker image to registry
         run: docker-compose -f docker-compose.yml push
 
@@ -73,7 +67,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
 
-      # Step 3: Set up kubectl
+      # Step 3: Set up kubectl and configure cluster
       - name: Set up kubectl
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -82,6 +76,11 @@ jobs:
           location: ${{ secrets.GKE_ZONE }}
           export_default_credentials: true
 
-      # Step 4: Deploy to GKE
-      - name: Deploy to GKE
+      # Step 4: Ensure the namespace exists
+      - name: Create Namespace if not exists
+        run: |
+          kubectl create namespace prod --dry-run=client -o yaml | kubectl apply -f -
+
+      # Step 5: Deploy manifests
+      - name: Apply All Manifests
         run: kubectl apply -f packaging/k8s/manifests/ -n prod
