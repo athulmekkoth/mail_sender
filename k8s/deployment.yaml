@@ -20,3 +20,5 @@ spec:
         envFrom:
          - secretRef:
                name:node-app-secrets
+        imagePullSecrets:
+          -name:registry-docker

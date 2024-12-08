@@ -5,7 +5,24 @@ info:
     API for sending emails using Amazon SES, RabbitMQ for queuing, Redis for caching/job tracking, 
     and user authentication with role-based permissions.
   version: '1.0.0'
-
+      info: {
+            title: "API Documentation",
+            version: "1.0.0",
+            description: `
+            ## Environment Variables:
+            - DATABASE_URL: Connection string for PostgreSQL.
+            - ACCESS_TOKEN_SECRET: Secret for signing access tokens.
+            - REFRESH_TOKEN_SECRET: Secret for signing refresh tokens.
+            - AWS_ACCESS_KEY_ID: AWS access key for S3 and other AWS services.
+            - AWS_SECRET_ACCESS_KEY: AWS secret access key.
+            - AWS_REGION: AWS region for services.
+            - SENDER_EMAIL: Default email address used for sending notifications.
+            - NODE_ENV: Application environment (e.g., dev, prod).
+            - AMQP_CONNECTION_STRING: RabbitMQ connection string.
+            - REDIS_HOST: Redis server host.
+            - REDIS_PORT: Redis server port.
+            `,
+        },
 servers:
   - url: 'http://localhost:8080'
     description: 'Local development server'
@@ -167,16 +184,7 @@ paths:
         '401':
           description: 'Unauthorized'
 
-  /user/delete:
-    delete:
-      summary: 'Delete User Account'
-      description: >
-        Deletes a user account. Requires authentication.
-      responses:
-        '200':
-          description: 'User account deleted successfully'
-        '401':
-          description: 'Unauthorized'
+
 
 components:
   schemas:

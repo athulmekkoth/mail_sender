@@ -41,7 +41,7 @@ const UserRegister = async (req: Request, res: Response) => {
 }
 
 const UserLogin = async (req: Request, res: Response) => {
-
+console.log(req.body)
   try {
     const user = await prisma.user.findUnique({ where: { email: req.body.email } });
    
