@@ -60,20 +60,6 @@ jobs:
       - name: Configure kubectl to use GKE cluster
         run: |
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.PROJECT_ID }}
-      - name: Create Kubernetes Secret
-        run: |
-          kubectl create secret generic my-app-secrets \
-          --from-literal=DATABASE_URL="***" \
-          --from-literal=ACCESS_TOKEN_SECRET="***" \
-          --from-literal=REFRESH_TOKEN_SECRET="***" \
-          --from-literal=AWS_ACCESS_KEY_ID="***" \
-          --from-literal=AWS_SECRET_ACCESS_KEY="***" \
-          --from-literal=AWS_REGION="***" \
-          --from-literal=SENDER_EMAIL="***" \
-          --from-literal=NODE_ENV="***" \
-          --from-literal=AMQP_CONNECTION_STRING="***" \
-          --from-literal=REDIS_HOST="***" \
-          --from-literal=REDIS_PORT="***"
 
       - name: Apply Kubernetes Manifests
         run: kubectl apply -f k8s/manifests/ -n prod --validate=false
