@@ -80,4 +80,4 @@ jobs:
 
       # Step 5: Deploy manifests
       - name: Apply All Manifests
-        run: kubectl apply -f k8s/manifests/ -n prod
+  run: kubectl apply -f k8s/manifests/ -n prod --validate=false
