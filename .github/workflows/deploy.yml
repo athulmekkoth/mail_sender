@@ -40,39 +40,40 @@ jobs:
       - name: Push Docker image to registry
         run: docker-compose -f docker-compose.yml push
 
- deploy:
-  runs-on: ubuntu-latest
-  needs: build
-  steps:
-    - uses: actions/checkout@v4
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v1
-      with:
-        credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-    - name: Set up Google Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
-      with:
-        project_id: ${{ secrets.PROJECT_ID }}
-    - name: Install gke-gcloud-auth-plugin
-      run: |
-        gcloud components install gke-gcloud-auth-plugin
-    - name: Configure kubectl to use GKE cluster
-      run: |
-        gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.PROJECT_ID }}
-    - name: Create Kubernetes Secret
-      run: |
-         kubectl create secret generic my-app-secrets \
-        --from-literal=DATABASE_URL=$(echo -n "${{ secrets.DATABASE_URL }}" | base64) \
-        --from-literal=ACCESS_TOKEN_SECRET=$(echo -n "${{ secrets.ACCESS_TOKEN_SECRET }}" | base64) \
-        --from-literal=REFRESH_TOKEN_SECRET=$(echo -n "${{ secrets.REFRESH_TOKEN_SECRET }}" | base64) \
-        --from-literal=AWS_ACCESS_KEY_ID=$(echo -n "${{ secrets.AWS_ACCESS_KEY_ID }}" | base64) \
-        --from-literal=AWS_SECRET_ACCESS_KEY=$(echo -n "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | base64) \
-        --from-literal=AWS_REGION=$(echo -n "${{ secrets.AWS_REGION }}" | base64) \
-        --from-literal=SENDER_EMAIL=$(echo -n "${{ secrets.SENDER_EMAIL }}" | base64) \
-        --from-literal=NODE_ENV=$(echo -n "${{ secrets.NODE_ENV }}" | base64) \
-        --from-literal=AMQP_CONNECTION_STRING=$(echo -n "${{ secrets.AMQP_CONNECTION_STRING }}" | base64) \
-        --from-literal=REDIS_HOST=$(echo -n "${{ secrets.REDIS_HOST }}" | base64) \
-        --from-literal=REDIS_PORT=$(echo -n "${{ secrets.REDIS_PORT }}" | base64) \
-        --from-literal=RABBITMQ_URI=$(echo -n "${{ secrets.RABBITMQ_URI }}" | base64)
-    - name: Apply Kubernetes Manifests
-      run: kubectl apply -f k8s/manifests/ -n prod --validate=false
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.PROJECT_ID }}
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
+      - name: Configure kubectl to use GKE cluster
+        run: |
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.PROJECT_ID }}
+      - name: Create Kubernetes Secret
+        run: |
+          kubectl create secret generic my-app-secrets \
+            --from-literal=DATABASE_URL=$(echo -n "${{ secrets.DATABASE_URL }}" | base64) \
+            --from-literal=ACCESS_TOKEN_SECRET=$(echo -n "${{ secrets.ACCESS_TOKEN_SECRET }}" | base64) \
+            --from-literal=REFRESH_TOKEN_SECRET=$(echo -n "${{ secrets.REFRESH_TOKEN_SECRET }}" | base64) \
+            --from-literal=AWS_ACCESS_KEY_ID=$(echo -n "${{ secrets.AWS_ACCESS_KEY_ID }}" | base64) \
+            --from-literal=AWS_SECRET_ACCESS_KEY=$(echo -n "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | base64) \
+            --from-literal=AWS_REGION=$(echo -n "${{ secrets.AWS_REGION }}" | base64) \
+            --from-literal=SENDER_EMAIL=$(echo -n "${{ secrets.SENDER_EMAIL }}" | base64) \
+            --from-literal=NODE_ENV=$(echo -n "${{ secrets.NODE_ENV }}" | base64) \
+            --from-literal=AMQP_CONNECTION_STRING=$(echo -n "${{ secrets.AMQP_CONNECTION_STRING }}" | base64) \
+            --from-literal=REDIS_HOST=$(echo -n "${{ secrets.REDIS_HOST }}" | base64) \
+            --from-literal=REDIS_PORT=$(echo -n "${{ secrets.REDIS_PORT }}" | base64) \
+            --from-literal=RABBITMQ_URI=$(echo -n "${{ secrets.RABBITMQ_URI }}" | base64)
+      - name: Apply Kubernetes Manifests
+        run: kubectl apply -f k8s/manifests/ -n prod --validate=false
