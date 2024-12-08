@@ -19,6 +19,6 @@ spec:
         - containerPort: 8080 
         envFrom:
           - secretRef:
-              name: node-app-secrets
+              name: secrets
         imagePullSecrets:
           - name: registry-docker
