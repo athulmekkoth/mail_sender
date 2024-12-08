@@ -17,72 +17,48 @@ jobs:
         node-version: ['20.x']
 
     steps:
-      # Step 1: Checkout the repository
       - uses: actions/checkout@v4
-
-      # Step 2: Set up Node.js
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
-      # Step 3: Install Docker Compose
       - name: Set up Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
-
-      # Step 4: Write the .env file from GitHub Secrets
       - name: Write .env file from GitHub Secrets
         run: |
           echo "${{ secrets.MY_ENV_FILE }}" > .env
-
-      # Step 5: Login to Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # Step 6: Build Docker images
       - name: Build Docker images
         run: docker-compose -f docker-compose.yml build
-
-      # Step 7: Push Docker images to registry
       - name: Push Docker image to registry
         run: docker-compose -f docker-compose.yml push
 
-jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
       - uses: actions/checkout@v4
-
-      # Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
-
-      # Set up Google Cloud SDK
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.PROJECT_ID }}
-
-      # Install gke-gcloud-auth-plugin
       - name: Install gke-gcloud-auth-plugin
         run: |
           gcloud components install gke-gcloud-auth-plugin
-
-      # Configure kubectl to use GKE cluster
       - name: Configure kubectl to use GKE cluster
         run: |
           gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.PROJECT_ID }}
-
-      # Create Kubernetes Secret from GitHub Secrets
       - name: Create Kubernetes Secret
         run: |
           kubectl create secret generic my-app-secrets \
@@ -97,9 +73,6 @@ jobs:
             --from-literal=AMQP_CONNECTION_STRING=${{ secrets.AMQP_CONNECTION_STRING }} \
             --from-literal=REDIS_HOST=${{ secrets.REDIS_HOST }} \
             --from-literal=REDIS_PORT=${{ secrets.REDIS_PORT }} \
-            --from-literal=RABBITMQ_URI=${{ secrets.RABBITMQ_URI }} \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      # Apply other Kubernetes Manifests
+            --from-literal=RABBITMQ_URI=${{ secrets.RABBITMQ_URI }}
       - name: Apply Kubernetes Manifests
         run: kubectl apply -f k8s/manifests/ -n prod --validate=false
