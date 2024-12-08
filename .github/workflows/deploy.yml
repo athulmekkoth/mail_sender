@@ -25,32 +25,24 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+
       - name: Set up Docker Compose
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      # If you're storing your secrets securely using GitHub Secrets
+      - name: Write .env file from GitHub Secrets
+        run: |
+          echo "${{ secrets.MY_ENV_FILE }}" > .env
+          
       - name: Build Docker images
         run: |
-          docker-compose --env-file .env -f docker-compose.yml build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-          NODE_ENV: ${{ secrets.NODE_ENV }}
-          AMQP_CONNECTION_STRING: ${{ secrets.AMQP_CONNECTION_STRING }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          RABBITMQ_URI: ${{ secrets.RABBITMQ_URI }}
+          docker-compose -f docker-compose.yml build
+
 
       - name: Push Docker image to registry
         run: |
-          docker-compose --env-file .env -f docker-compose.yml push
+          docker-compose -f docker-compose.yml push
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
